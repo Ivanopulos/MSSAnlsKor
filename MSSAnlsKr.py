@@ -1,6 +1,6 @@
 import pandas as pd
 file_path = '3. для анализа.xlsx'
-data = pd.read_excel(file_path)
+data = pd.read_excel(file_path, header=0)
 print(data)
 data_columns = data.columns[2:]# Убедимся, что все числовые колонки имеют корректный числовой формат
 for column in data_columns:# Преобразование данных в числовой формат, игнорируя ошибки (чтобы не конвертировать текст)
@@ -47,9 +47,11 @@ grouped_data = merged_data.groupby(['имя показателя', 'Год']).ag
     'Значение показателя':'mean',
     'Структурная модель':'first'  # Предполагаем, что 'Структурная модель' одинакова для одного показателя в течение года
 }).reset_index()
+print("Всего уникальных показателей в сгруппированных данных:", len(grouped_data['имя показателя'].unique()))
 
 # Вычисление корреляции для каждого показателя и года
 correlation_results = []
+missing_correlation_indicators = []
 
 for indicator in grouped_data['имя показателя'].unique():
     indicator_data = grouped_data[grouped_data['имя показателя'] == indicator]
@@ -59,10 +61,15 @@ for indicator in grouped_data['имя показателя'].unique():
             'имя показателя': indicator,
             'Корреляция': correlation
         })
+    else:
+        missing_correlation_indicators.append(indicator)
+
+print("Показатели, для которых не вычисляется корреляция:", missing_correlation_indicators)
+print("Всего показателей, для которых не вычисляется корреляция:", len(missing_correlation_indicators))
 
 # Преобразование результатов в DataFrame для удобства отображения
 correlation_df = pd.DataFrame(correlation_results).sort_values(by='Корреляция', ascending=False)
 
 # Вывод результатов
-print(correlation_df.head(10))
+print(correlation_df)
 correlation_df.to_excel("2.xlsx")
